@@ -22,6 +22,14 @@ impl Services for Browser {
     }
 }
 
+struct ImageClipboard;
+
+impl Services for ImageClipboard {
+    fn clipboard_get_image(&mut self) -> Option<(u32, u32, Vec<u8>)> {
+        Some((2, 2, vec![255; 2 * 2 * 4]))
+    }
+}
+
 struct Page {
     ctx: egui::Context,
     app: FigApp,
@@ -119,6 +127,36 @@ fn text_copied_elsewhere_after_our_copy_still_pastes_as_text() {
     p.paste();
     assert_eq!(p.count(rect), 1);
     assert_eq!(p.count(text), 1, "newer text from elsewhere becomes a text layer");
+}
+
+#[test]
+fn copying_nothing_keeps_the_system_clipboard_and_shows_no_error() {
+    let mut p = Page::new();
+    p.app.session.execute("select.set", &json!({"ids": []})).unwrap();
+    let before = p.clipboard.clone();
+    let out = p.frame(vec![Page::key(Key::C, true), Event::Copy]);
+    assert_eq!(p.clipboard, before);
+    assert!(!out.iter().any(|command| matches!(command, OutputCommand::CopyText(_))));
+    assert!(p.app.ui.toast.is_none());
+}
+
+#[test]
+fn image_only_clipboard_pastes_when_only_ctrl_v_release_arrives() {
+    let mut p = Page::new();
+    p.app.services = Box::new(ImageClipboard);
+    // egui-winit consumes the key press after its text read fails for an image-only clipboard.
+    p.frame(vec![Page::key(Key::V, false)]);
+    assert_eq!(p.app.session.doc().unwrap().images.len(), 1);
+    assert_eq!(p.count(rect), 2, "one image node was imported");
+}
+
+#[test]
+fn key_release_does_not_paste_an_image_twice_after_key_press() {
+    let mut p = Page::new();
+    p.app.services = Box::new(ImageClipboard);
+    p.frame(vec![Page::key(Key::V, true)]);
+    p.frame(vec![Page::key(Key::V, false)]);
+    assert_eq!(p.count(rect), 2, "the release did not import a second image");
 }
 
 #[test]

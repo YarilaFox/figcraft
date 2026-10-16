@@ -134,6 +134,11 @@ pub fn invoke(app: &mut FigApp, id: &str) {
         "collab.publish" => crate::live::open_publish(app),
         "edit.copy" | "edit.cut" => {
             let ids = app.session.selection();
+            // Copying an empty selection is a no-op. Keep the existing system clipboard and
+            // avoid showing the engine's parameter error for an ordinary Ctrl+C press.
+            if ids.is_empty() {
+                return;
+            }
             // SVG for other apps, taken before a cut removes the layers.
             let svg = app.session.doc().ok().and_then(|d| figcraft_svg_export(d, &ids));
             app.run(id, json!({}));

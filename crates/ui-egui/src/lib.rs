@@ -494,6 +494,8 @@ pub struct UiState {
     /// What FigCraft last put on the system clipboard: when the clipboard still holds it, a paste
     /// uses our copied layers; anything else there (an image, SVG, text) came from another app.
     pub last_copy: Option<String>,
+    /// Whether the current Ctrl+V chord already pasted on key press or a platform paste event.
+    pub paste_handled_for_key: bool,
     /// When (UI clock, seconds) open documents next get an autosave checkpoint.
     pub next_autosave: f64,
     /// With auto-save on: when (UI clock, seconds) files with unsaved changes are next saved, and
@@ -587,6 +589,7 @@ impl Default for UiState {
             dev: dev_mode::DevUi::default(),
 
             last_copy: None,
+            paste_handled_for_key: false,
             next_autosave: 0.0,
             auto_save_at: None,
             auto_saving: Vec::new(),

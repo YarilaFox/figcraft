@@ -96,23 +96,42 @@ fn cached_tip(label: &'static str, key: Option<&'static str>) -> &'static str {
 /// began.
 pub fn handle(app: &mut FigApp, ctx: &Context, typing: bool) {
     note_platform(ctx);
+    let events: Vec<Event> = ctx.input(|i| i.events.clone());
+    let paste_key = |event: &Event, down| {
+        matches!(event, Event::Key { key: Key::V, pressed, repeat: false, modifiers, .. }
+            if *pressed == down && modifiers.command && !modifiers.shift && !modifiers.alt)
+    };
+    let paste_down = events.iter().any(|event| paste_key(event, true));
+    let paste_up = events.iter().any(|event| paste_key(event, false));
+    let v_up = events.iter().any(|event| matches!(event, Event::Key { key: Key::V, pressed: false, .. }));
     // Text fields in panels own the keyboard (also the key that ends their editing).
     if typing || crate::a11y::field_focused(ctx) || app.ui.palette.is_some() {
+        if v_up {
+            app.ui.paste_handled_for_key = false;
+        }
         return;
     }
-    let events: Vec<Event> = ctx.input(|i| i.events.clone());
     if events.is_empty() {
         return;
     }
     let editing = app.session.ds().map(|d| d.text_edit.is_some()).unwrap_or(false);
     if editing {
         text_keys(app, ctx, &events);
+        if v_up {
+            app.ui.paste_handled_for_key = false;
+        }
         return;
     }
-    // An image-only clipboard brings no paste event, just the key: paste from the key then.
+    // egui-winit consumes Ctrl+V's key press while asking the clipboard for text. With an
+    // image-only clipboard that read fails, so only the key release reaches us on Windows.
     let paste_event = events.iter().any(|e| matches!(e, Event::Paste(_)));
-    let paste_key = events.iter().any(|e| matches!(e, Event::Key { key: Key::V, pressed: true, repeat: false, modifiers, .. } if modifiers.command && !modifiers.shift && !modifiers.alt));
-    if paste_key && !paste_event {
+    if paste_down {
+        app.ui.paste_handled_for_key = true;
+    }
+    if paste_event && (paste_down || paste_up || ctx.input(|i| i.modifiers.command)) {
+        app.ui.paste_handled_for_key = true;
+    }
+    if paste_down && !paste_event {
         crate::menus::paste(app, None);
     }
     let now = ctx.input(|i| i.time);
@@ -128,6 +147,12 @@ pub fn handle(app: &mut FigApp, ctx: &Context, typing: bool) {
             }
             _ => {}
         }
+    }
+    if paste_up && !app.ui.paste_handled_for_key {
+        crate::menus::paste(app, None);
+    }
+    if v_up {
+        app.ui.paste_handled_for_key = false;
     }
 }
 
