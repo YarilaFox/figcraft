@@ -291,6 +291,32 @@ pub fn show(app: &mut FigApp, ctx: &Context) {
             });
             ui.add_space(8.0);
             ui.horizontal(|ui| {
+                ui.label(tr("Accent color"));
+                let choices = [("green", tr("Green"), crate::theme::BRAND), ("blue", tr("Blue"), crate::theme::BLUE)];
+                let selected = choices.iter().find(|(name, _, _)| app.session.prefs.accent == *name).unwrap_or(&choices[0]);
+                let resp = crate::widgets::dropdown_lead(ui, selected.1, 220.0, Some(crate::widgets::DropLead::Dot(selected.2)));
+                let mut pick = None;
+                crate::right::menu_popup(&resp).show(|ui| {
+                    for (name, label, color) in choices {
+                        let on = app.session.prefs.accent == name;
+                        let row =
+                            crate::right::menu_row(ui, &format!("{}{label}", if on { "✓ " } else { "    " }), "", 16.0, |painter, rect, _| {
+                                painter.circle_filled(egui::pos2(rect.max.x - 12.0, rect.center().y), 5.0, color);
+                            });
+                        crate::a11y::menu_item(&row, label, "", Some(on));
+                        if row.clicked() {
+                            pick = Some(name);
+                            ui.close();
+                        }
+                    }
+                });
+                if let Some(name) = pick {
+                    app.run("pref.accent", json!({"color": name}));
+                    app.services.save_prefs(&app.session.prefs);
+                }
+            });
+            ui.add_space(8.0);
+            ui.horizontal(|ui| {
                 ui.label(tr("Language"));
                 // Each language by its own name; System follows the OS (the browser on the web).
                 let langs = || {
