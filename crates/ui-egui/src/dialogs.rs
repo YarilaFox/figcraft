@@ -292,7 +292,12 @@ pub fn show(app: &mut FigApp, ctx: &Context) {
             ui.add_space(8.0);
             ui.horizontal(|ui| {
                 ui.label(tr("Accent color"));
-                let choices = [("green", tr("Green"), crate::theme::BRAND), ("blue", tr("Blue"), crate::theme::BLUE)];
+                let choices = [
+                    ("green", tr("Green"), crate::theme::BRAND),
+                    ("blue", tr("Blue"), crate::theme::BLUE),
+                    ("orange", tr("Orange"), crate::theme::ORANGE),
+                    ("pink", tr("Pink"), crate::theme::PINK),
+                ];
                 let selected = choices.iter().find(|(name, _, _)| app.session.prefs.accent == *name).unwrap_or(&choices[0]);
                 let resp = crate::widgets::dropdown_lead(ui, selected.1, 220.0, Some(crate::widgets::DropLead::Dot(selected.2)));
                 crate::a11y::combo(&resp, tr("Accent color"), selected.1, crate::a11y::menu_open(&resp));

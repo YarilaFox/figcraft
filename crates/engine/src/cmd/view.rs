@@ -364,10 +364,10 @@ pub fn specs() -> Vec<CommandSpec> {
             s.prefs.theme = "system".into();
             ok()
         }),
-        spec!("pref.accent", "Accent color", "{color: green|blue} → {color}", false, |s, p| {
+        spec!("pref.accent", "Accent color", "{color: green|blue|orange|pink} → {color}", false, |s, p| {
             let color = req_string("pref.accent", p, "color")?;
-            if !matches!(color.as_str(), "green" | "blue") {
-                return Err(bad("pref.accent", "`color` must be green or blue"));
+            if !matches!(color.as_str(), "green" | "blue" | "orange" | "pink") {
+                return Err(bad("pref.accent", "`color` must be green, blue, orange or pink"));
             }
             s.prefs.accent = color.clone();
             Ok(json!({"color": color}))
@@ -585,6 +585,11 @@ mod accent_tests {
         assert_eq!(s.execute("pref.accent", &json!({"color": "blue"})).unwrap()["color"], "blue");
         let saved: Prefs = serde_json::from_value(serde_json::to_value(&s.prefs).unwrap()).unwrap();
         assert_eq!(saved.accent, "blue");
+        for color in ["orange", "pink"] {
+            assert_eq!(s.execute("pref.accent", &json!({"color": color})).unwrap()["color"], color);
+            let saved: Prefs = serde_json::from_value(serde_json::to_value(&s.prefs).unwrap()).unwrap();
+            assert_eq!(saved.accent, color);
+        }
         let old: Prefs = serde_json::from_value(json!({"theme": "dark"})).unwrap();
         assert_eq!(old.accent, "green");
     }

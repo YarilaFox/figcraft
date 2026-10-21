@@ -64,17 +64,29 @@ pub const ACCENT_ON: Color32 = Color32::from_rgb(0x07, 0x35, 0x2A);
 /// The original FigCraft blue.
 pub const BLUE: Color32 = Color32::from_rgb(0x0D, 0x99, 0xFF);
 pub const BLUE_STRONG: Color32 = Color32::from_rgb(0x00, 0x6B, 0xD1);
+/// Optional interface accents. FigCraft's logo and brand icon retain [`BRAND`].
+pub const ORANGE: Color32 = Color32::from_rgb(0xF9, 0x73, 0x16);
+pub const ORANGE_STRONG: Color32 = Color32::from_rgb(0xC2, 0x41, 0x0C);
+pub const PINK: Color32 = Color32::from_rgb(0xEC, 0x48, 0x99);
+pub const PINK_STRONG: Color32 = Color32::from_rgb(0xBE, 0x18, 0x5D);
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum AccentPreset {
     #[default]
     Green,
     Blue,
+    Orange,
+    Pink,
 }
 
 impl AccentPreset {
     pub fn from_pref(value: &str) -> Self {
-        if value == "blue" { Self::Blue } else { Self::Green }
+        match value {
+            "blue" => Self::Blue,
+            "orange" => Self::Orange,
+            "pink" => Self::Pink,
+            _ => Self::Green,
+        }
     }
 }
 /// Id of the canvas overlays' accent for this frame ([`set_canvas_page`]).
@@ -230,6 +242,36 @@ impl Tokens {
                 self.menu_hover = BLUE_STRONG;
             }
             self.focus = if self.dark { BLUE } else { BLUE_STRONG };
+        } else if preset == AccentPreset::Orange {
+            self.accent = ORANGE;
+            self.accent_strong = ORANGE_STRONG;
+            self.accent_hover = if self.dark { Color32::from_rgb(0xFD, 0xBA, 0x74) } else { Color32::from_rgb(0x9A, 0x34, 0x12) };
+            self.accent_on = Color32::from_rgb(0x1E, 0x1E, 0x1E);
+            self.accent_text = if self.dark { Color32::from_rgb(0xFF, 0xB1, 0x5C) } else { ORANGE_STRONG };
+            self.action = if self.dark { ORANGE } else { ORANGE_STRONG };
+            self.action_hover = self.accent_hover;
+            self.action_on = if self.dark { self.accent_on } else { Color32::WHITE };
+            self.selected_row = if self.dark { Color32::from_rgb(0x4A, 0x2A, 0x17) } else { Color32::from_rgb(0xFF, 0xF1, 0xE6) };
+            self.selected_row_child = if self.dark { Color32::from_rgb(0x3A, 0x27, 0x1D) } else { Color32::from_rgb(0xFF, 0xF8, 0xF2) };
+            if self.dark {
+                self.menu_hover = ORANGE_STRONG;
+            }
+            self.focus = if self.dark { ORANGE } else { ORANGE_STRONG };
+        } else if preset == AccentPreset::Pink {
+            self.accent = if self.dark { Color32::from_rgb(0xF4, 0x72, 0xB6) } else { PINK };
+            self.accent_strong = PINK_STRONG;
+            self.accent_hover = if self.dark { Color32::from_rgb(0xFD, 0xA4, 0xD2) } else { Color32::from_rgb(0x9D, 0x17, 0x4D) };
+            self.accent_on = Color32::from_rgb(0x2E, 0x10, 0x22);
+            self.accent_text = if self.dark { Color32::from_rgb(0xF9, 0xA8, 0xD4) } else { PINK_STRONG };
+            self.action = if self.dark { self.accent } else { PINK_STRONG };
+            self.action_hover = self.accent_hover;
+            self.action_on = if self.dark { self.accent_on } else { Color32::WHITE };
+            self.selected_row = if self.dark { Color32::from_rgb(0x51, 0x21, 0x3D) } else { Color32::from_rgb(0xFC, 0xE7, 0xF3) };
+            self.selected_row_child = if self.dark { Color32::from_rgb(0x40, 0x21, 0x37) } else { Color32::from_rgb(0xFF, 0xF4, 0xFA) };
+            if self.dark {
+                self.menu_hover = PINK_STRONG;
+            }
+            self.focus = if self.dark { self.accent } else { PINK_STRONG };
         }
         self
     }
@@ -553,6 +595,26 @@ mod tests {
         set_canvas_page(&ctx, Color32::BLACK);
         assert_eq!(canvas_accent(&ctx), BLUE);
         assert_eq!(under_white(&ctx, BLUE), BLUE_STRONG);
+    }
+
+    #[test]
+    fn orange_and_pink_keep_controls_readable_and_brand_mark_green() {
+        for preset in [AccentPreset::Orange, AccentPreset::Pink] {
+            for base in [Tokens::light(), Tokens::dark()] {
+                let t = base.with_accent(preset);
+                assert!(c(t.action_on).contrast(c(t.action)) >= 4.5, "{preset:?} action");
+                assert!(c(t.action_on).contrast(c(t.action_hover)) >= 4.5, "{preset:?} hover");
+                assert!(c(t.accent_text).contrast(c(t.selected_row)) >= 4.5, "{preset:?} selected row");
+                assert!(c(t.menu_text).contrast(c(t.menu_hover)) >= 4.5, "{preset:?} menu");
+            }
+        }
+        assert_eq!(Tokens::light().with_accent(AccentPreset::Orange).accent, ORANGE);
+        assert_eq!(Tokens::light().with_accent(AccentPreset::Pink).accent, PINK);
+        assert_eq!(Tokens::light().with_accent(AccentPreset::Orange).menu_hover, Tokens::light().menu_hover);
+        assert_eq!(Tokens::light().with_accent(AccentPreset::Pink).menu_hover, Tokens::light().menu_hover);
+        assert_eq!(Tokens::dark().with_accent(AccentPreset::Orange).menu_hover, ORANGE_STRONG);
+        assert_eq!(Tokens::dark().with_accent(AccentPreset::Pink).menu_hover, PINK_STRONG);
+        assert_eq!(BRAND, Color32::from_rgb(0x02, 0xDA, 0x96));
     }
 
     /// `fill` (premultiplied, maybe translucent) painted over the opaque `bg`.
