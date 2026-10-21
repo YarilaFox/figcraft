@@ -295,6 +295,7 @@ pub fn show(app: &mut FigApp, ctx: &Context) {
                 let choices = [("green", tr("Green"), crate::theme::BRAND), ("blue", tr("Blue"), crate::theme::BLUE)];
                 let selected = choices.iter().find(|(name, _, _)| app.session.prefs.accent == *name).unwrap_or(&choices[0]);
                 let resp = crate::widgets::dropdown_lead(ui, selected.1, 220.0, Some(crate::widgets::DropLead::Dot(selected.2)));
+                crate::a11y::combo(&resp, tr("Accent color"), selected.1, crate::a11y::menu_open(&resp));
                 let mut pick = None;
                 crate::right::menu_popup(&resp).show(|ui| {
                     for (name, label, color) in choices {

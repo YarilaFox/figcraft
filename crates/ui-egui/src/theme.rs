@@ -226,7 +226,7 @@ impl Tokens {
             self.selected_row_child = if self.dark { Color32::from_rgb(0x2D, 0x37, 0x41) } else { Color32::from_rgb(0xF2, 0xF9, 0xFF) };
             // Dark menus can use an accent hover. Light menus keep their neutral hover so the
             // menu's dark text remains readable.
-            if c(BLUE_STRONG).contrast(c(self.menu_text)) >= 4.5 {
+            if self.dark && c(BLUE_STRONG).contrast(c(self.menu_text)) >= 4.5 {
                 self.menu_hover = BLUE_STRONG;
             }
             self.focus = if self.dark { BLUE } else { BLUE_STRONG };
@@ -545,6 +545,8 @@ mod tests {
         let blue = Tokens::light().with_accent(AccentPreset::Blue);
         assert_eq!(blue.accent, BLUE);
         assert_eq!(blue.selected_row, Color32::from_rgb(0xE5, 0xF4, 0xFF));
+        assert_eq!(blue.menu_hover, Tokens::light().menu_hover, "light menus keep their neutral hover");
+        assert_eq!(Tokens::dark().with_accent(AccentPreset::Blue).menu_hover, BLUE_STRONG);
         apply(&ctx, blue);
         set_canvas_page(&ctx, Color32::WHITE);
         assert_eq!(canvas_accent(&ctx), BLUE_STRONG);

@@ -221,3 +221,25 @@ fn the_interface_size_menu_works_from_the_keyboard() {
     press(&mut u, Key::Escape);
     assert!(!u.app.ui.preferences);
 }
+
+#[test]
+fn the_accent_color_dropdown_has_an_accessible_name() {
+    use crate::a11y::focused_name;
+    use egui::{Event, Key, Modifiers};
+
+    let mut u = Ui::new(Session::new());
+    u.app.ui.preferences = true;
+    u.ctx.enable_accesskit();
+    settle(&mut u, 1.0);
+    for _ in 0..140 {
+        if focused_name(&u.ctx) == "Accent color" {
+            return;
+        }
+        u.frame(vec![
+            Event::Key { key: Key::Tab, physical_key: None, pressed: true, repeat: false, modifiers: Modifiers::NONE },
+            Event::Key { key: Key::Tab, physical_key: None, pressed: false, repeat: false, modifiers: Modifiers::NONE },
+        ]);
+        u.frame(vec![]);
+    }
+    panic!("Tab never reaches the named Accent color dropdown (focus: {:?})", focused_name(&u.ctx));
+}
