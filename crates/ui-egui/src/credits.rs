@@ -297,7 +297,8 @@ fn contributor_controls(ui: &mut egui::Ui, t: &Tokens, v: &mut View, keys: &[Sor
             }
             #[cfg(not(test))]
             CreditsAction::Refresh | CreditsAction::Retry => {
-                clicked = ui.small_button("⟳").on_hover_text(tr(if action == CreditsAction::Retry { "Retry" } else { "Refresh" })).clicked();
+                let hint = if action == CreditsAction::Retry { tr("Retry") } else { tr("Refresh") };
+                clicked = ui.small_button("⟳").on_hover_text(hint).clicked();
             }
             #[cfg(test)]
             CreditsAction::Retry => {

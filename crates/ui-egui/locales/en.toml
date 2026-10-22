@@ -8,7 +8,6 @@
 name = "English"
 
 [ui]
-"% of all commits" = "% of all commits"
 "(no longer published)" = "(no longer published)"
 "({n} warnings: some entries were skipped)" = { one = "({n} warning: some entries were skipped)", other = "({n} warnings: some entries were skipped)" }
 "+ Create variable" = "+ Create variable"
@@ -730,7 +729,6 @@ name = "English"
 "Line height" = "Line height"
 "Linear" = "Linear"
 "Lines" = "Lines"
-"Lines +/−" = "Lines +/−"
 "Lines added" = "Lines added"
 "Lines deleted" = "Lines deleted"
 "Link" = "Link"
