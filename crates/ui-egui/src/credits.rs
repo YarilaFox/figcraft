@@ -605,7 +605,7 @@ fn table(ui: &mut egui::Ui, list: &[&Contributor], v: &mut View, height: f32) {
 fn cell(ui: &mut egui::Ui, numeric: bool, text: &str, last: bool) {
     let layout = if numeric { egui::Layout::right_to_left(egui::Align::Center) } else { egui::Layout::left_to_right(egui::Align::Center) };
     ui.with_layout(layout, |ui| {
-        ui.add_space(CELL_PAD + if last { scrollbar_gutter(ui) } else { 0.0 });
+        ui.add_space(CELL_PAD + if last && numeric { scrollbar_gutter(ui) } else { 0.0 });
         ui.add(egui::Label::new(text).selectable(false));
     });
 }
