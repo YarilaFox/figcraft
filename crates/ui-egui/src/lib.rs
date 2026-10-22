@@ -16,6 +16,7 @@ pub mod comments;
 pub mod component_panel;
 pub mod control;
 pub mod credits;
+mod credits_github;
 pub mod cursors;
 pub mod dev_compare;
 pub mod dev_mode;
